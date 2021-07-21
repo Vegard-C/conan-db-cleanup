@@ -37,3 +37,4 @@
 # Misc
 *.log
 hs_err_pid*
+game.db
