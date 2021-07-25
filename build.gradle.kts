@@ -9,6 +9,11 @@ val kotlinVersion: String by project
 
 plugins {
   kotlin("jvm")
+  kotlin("plugin.spring")
+  kotlin("plugin.allopen")
+  kotlin("plugin.noarg")
+  id("org.springframework.boot")
+  id("io.spring.dependency-management")
 }
 
 group = "com." + project.name
@@ -20,9 +25,13 @@ repositories {
   mavenCentral()
 }
 
-
 dependencies {
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
   implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+  implementation("org.springframework.boot:spring-boot-starter")
   implementation("org.xerial:sqlite-jdbc:$sqlliteVersion")
+}
+
+tasks.getByName<Jar>("jar") {
+  enabled = false
 }
