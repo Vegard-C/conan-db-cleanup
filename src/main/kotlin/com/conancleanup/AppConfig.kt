@@ -19,21 +19,11 @@ class AppConfig {
 }
 
 @Component
-class TestRun (private val conBuilder: DbConnectionBuilder) {
+class TestRun (private val service: Service) {
 
     @EventListener(ApplicationReadyEvent::class)
     fun doSomethingAfterStartup() {
-        conBuilder.connection().use { c ->
-            c.createStatement().use { s ->
-                s.executeQuery("select playerId, char_name from characters").use { rs ->
-                    while (rs.next()) {
-                        val playerId = rs.getLong(1)
-                        val name = rs.getString(2)
-                        println("Player '$name' with id $playerId")
-                    }
-                }
-            }
-        }
+        println(service.readServer())
     }
 }
 
