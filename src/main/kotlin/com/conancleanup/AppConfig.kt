@@ -23,7 +23,12 @@ class TestRun (private val service: Service) {
 
     @EventListener(ApplicationReadyEvent::class)
     fun doSomethingAfterStartup() {
-        println(service.readServer())
+        val server = service.readServer()
+        println(server)
+        server.guilds().forEach { guild ->
+            val players = server.playersFromGuild(guild).map { it.name }
+            println("${guild.name}: $players")
+        }
     }
 }
 

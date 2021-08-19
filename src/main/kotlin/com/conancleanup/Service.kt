@@ -34,10 +34,32 @@ class Service(private val repo: ConanRepository) {
             }
         }
 
-        return Server(
+        return ServerImpl(
             accounts = accounts.sortedBy { it.id },
             guilds = guilds.sortedBy { it.name },
             players = players.sortedBy { "${it.name}.${it.account.funcomId}" }
         )
+    }
+
+    private class ServerImpl(
+        private val accounts: List<Account>,
+        private val guilds: List<Guild>,
+        private val players: List<Player>
+    ) : Server {
+
+        override fun accounts(): List<Account> = accounts
+
+        override fun guilds(): List<Guild> = guilds
+
+        override fun players(): List<Player> = players
+
+        override fun playersFromGuild(guild: Guild): List<Player> = players.filter { it.guild == guild }
+
+        override fun toString(): String {
+            return "ServerImpl(accounts=$accounts, guilds=$guilds, players=$players)"
+        }
+
+
+
     }
 }

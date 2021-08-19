@@ -2,11 +2,12 @@ package com.conancleanup
 
 import java.time.Instant
 
-data class Server(
-    val accounts: List<Account>, // ordered by id
-    val guilds: List<Guild>, // ordered by name
-    val players: List<Player>, // ordered by name and funcomId
-)
+interface Server {
+    fun accounts(): List<Account> // ordered by id
+    fun guilds(): List<Guild> // ordered by name
+    fun players(): List<Player> // ordered by name and funcomId
+    fun playersFromGuild(guild: Guild): List<Player>
+}
 data class Account(
     val id: Long,
     val funcomId: String,
