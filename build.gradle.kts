@@ -30,8 +30,14 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
   implementation("org.springframework.boot:spring-boot-starter")
   implementation("org.xerial:sqlite-jdbc:$sqlliteVersion")
+
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.getByName<Jar>("jar") {
   enabled = false
+}
+
+tasks.withType<Test> {
+  useJUnitPlatform()
 }
