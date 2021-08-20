@@ -7,6 +7,6 @@ class SampleTest {
 
   @Test
   fun `dummy sample test case`() {
-    assertThat(2 * 2).isEqualTo(4)
+    assertThat(2 * 2).isEqualTo(5)
   }
 }
