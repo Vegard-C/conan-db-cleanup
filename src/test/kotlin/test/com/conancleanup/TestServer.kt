@@ -1,10 +1,7 @@
 package test.com.conancleanup
 
 import com.conancleanup.Service
-import com.conancleanup.repo.AccountEO
-import com.conancleanup.repo.ConanRepository
-import com.conancleanup.repo.GuildEO
-import com.conancleanup.repo.PlayerEO
+import com.conancleanup.repo.*
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -44,11 +41,15 @@ class TestServer {
         override fun readAccounts(): Collection<AccountEO> = accIds.map { AccountEO(it, "xy") }
         override fun readGuilds(): Collection<GuildEO> = listOf()
         override fun readPlayers(): Collection<PlayerEO> = listOf()
+        override fun readBuildingsAndPlaceables(): Collection<BuildingOrPlaceableEO> = listOf()
+        override fun readBuildingInstances(): Collection<BuildingInstancesEO> = listOf()
     }
 
     class GuildsTestConanRepository(private val names: List<String>): ConanRepository{
         override fun readAccounts(): Collection<AccountEO> = listOf()
         override fun readGuilds(): Collection<GuildEO> = names.map { GuildEO(1, it)}
         override fun readPlayers(): Collection<PlayerEO> = listOf()
+        override fun readBuildingsAndPlaceables(): Collection<BuildingOrPlaceableEO> = listOf()
+        override fun readBuildingInstances(): Collection<BuildingInstancesEO> = listOf()
     }
 }

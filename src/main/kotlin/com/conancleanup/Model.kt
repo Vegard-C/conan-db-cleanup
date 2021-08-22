@@ -7,6 +7,11 @@ interface Server {
     fun guilds(): List<Guild> // ordered by name
     fun players(): List<Player> // ordered by name and funcomId
     fun playersFromGuild(guild: Guild): List<Player>
+    fun ownership(player: Player): Owner
+    fun ownership(guild: Guild): Owner
+    fun unknownOwnership(): Owner
+    fun ownedPlaceables(ownership: Owner): List<Placeable>
+    fun ownedBuildings(ownership: Owner): List<Building>
 }
 data class Account(
     val id: Long,
@@ -28,3 +33,18 @@ data class Player(
         return "Player(name='$name' guild='${guild?.name ?: "-"}' daysOffline=${daysOffline} funcomID=${account.funcomId})"
     }
 }
+
+sealed class Owner
+class OwnerPlayer(val player: Player) : Owner()
+class OwnerGuild(val guild: Guild) : Owner()
+class OwnerUnknown : Owner()
+
+data class Placeable(
+    val id: Long,
+    val owner: Owner,
+)
+data class Building(
+    val id: Long,
+    val owner: Owner,
+    val countPieces: Long,
+)

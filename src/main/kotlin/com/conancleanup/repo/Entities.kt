@@ -14,3 +14,11 @@ data class PlayerEO(
     val lastOnlineEpocheSeconds: Long,
     val guildId: Long? = null,
 )
+data class BuildingOrPlaceableEO(
+    val id: Long,
+    val owner: Long,
+)
+data class BuildingInstancesEO(
+    val id: Long,
+    val countInstances: Long,
+)

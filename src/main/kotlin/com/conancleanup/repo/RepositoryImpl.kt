@@ -33,6 +33,28 @@ class RepositoryImpl(private val conBuilder: DbConnectionBuilder) : ConanReposit
         }
     }
 
+    override fun readBuildingsAndPlaceables(): Collection<BuildingOrPlaceableEO> {
+        conBuilder.connection().use { c ->
+            return c.readTable("select object_id, owner_id from buildings") {
+                BuildingOrPlaceableEO(
+                    it.getLong(1),
+                    it.getLong(2)
+                )
+            }
+        }
+    }
+
+    override fun readBuildingInstances(): Collection<BuildingInstancesEO> {
+        val buildingInstanceCount: MutableMap<Long, Long> = mutableMapOf()
+        conBuilder.connection().use { c ->
+            c.readTable("select object_id from building_instances") {
+                val id = it.getLong(1)
+                buildingInstanceCount.put(id, buildingInstanceCount.getOrDefault(id, 0) + 1)
+            }
+        }
+        return buildingInstanceCount.map { (key, value) ->  BuildingInstancesEO(key, value)}
+    }
+
     private fun <T> Connection.readTable(sql: String, buildItem: (ResultSet) -> T): List<T> {
         val l = mutableListOf<T>()
         createStatement().use { s ->
