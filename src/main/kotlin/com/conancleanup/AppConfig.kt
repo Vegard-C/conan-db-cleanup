@@ -13,9 +13,7 @@ import java.sql.DriverManager
 class AppConfig {
     @Bean
     fun dbConnectionBuilder(@Value("\${conancleanup.db.url}") dbUrl: String) =
-        object : DbConnectionBuilder {
-            override fun connection() = DriverManager.getConnection(dbUrl)
-        }
+        DbConnectionBuilder { DriverManager.getConnection(dbUrl) }
 }
 
 @Component
@@ -46,6 +44,6 @@ class TestRun (private val service: Service) {
     }
 }
 
-interface DbConnectionBuilder {
+fun interface DbConnectionBuilder {
     fun connection(): Connection
 }
