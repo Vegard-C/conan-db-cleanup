@@ -12,6 +12,9 @@ interface Server {
     fun unknownOwnership(): Owner
     fun ownedPlaceables(ownership: Owner): List<Placeable>
     fun ownedBuildings(ownership: Owner): List<Building>
+    fun transferOwnership(ids: List<Long>, ownership: Owner)
+    fun deletePlayer(player: Player)
+    fun compress()
 }
 data class Account(
     val id: Long,
@@ -23,6 +26,7 @@ data class Guild(
 )
 data class Player(
     val id: Long,
+    val ownerId: Long,
     val name: String,
     val account: Account,
     val lastOnlineTs: Instant,

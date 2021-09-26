@@ -38,3 +38,4 @@
 *.log
 hs_err_pid*
 game.db
+game-backup.db

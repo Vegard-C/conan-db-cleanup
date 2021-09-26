@@ -10,6 +10,7 @@ data class GuildEO(
 )
 data class PlayerEO(
     val id: Long,
+    val ownerId: Long,
     val name: String,
     val lastOnlineEpocheSeconds: Long,
     val guildId: Long? = null,

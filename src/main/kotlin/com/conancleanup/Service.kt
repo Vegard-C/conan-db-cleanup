@@ -22,6 +22,7 @@ class Service(private val repo: ConanRepository) {
             with(it) {
                 Player(
                     id = id,
+                    ownerId = ownerId,
                     name = name,
                     account = accountId2Account.getValue(id),
                     lastOnlineTs = Instant.ofEpochSecond(lastOnlineEpocheSeconds),
@@ -36,7 +37,7 @@ class Service(private val repo: ConanRepository) {
 
         val ownerId2Owner = mutableMapOf<Long, Owner>()
         guilds.forEach { ownerId2Owner.put(it.id, OwnerGuild(it)) }
-        players.forEach { ownerId2Owner.put(it.id, OwnerPlayer(it)) }
+        players.forEach { ownerId2Owner.put(it.ownerId, OwnerPlayer(it)) }
         val unknownOwner = OwnerUnknown()
 
         val buildingsAndPlaceablesId2OwnerId = repo.readBuildingsAndPlaceables().associate { it.id to it.owner }
@@ -57,6 +58,7 @@ class Service(private val repo: ConanRepository) {
             unknownOwner = unknownOwner,
             placeables = placeables,
             buildings = buildings,
+            conanRepository = repo,
         )
     }
 
@@ -68,6 +70,7 @@ class Service(private val repo: ConanRepository) {
         private val unknownOwner: Owner,
         private val placeables: List<Placeable>,
         private val buildings: List<Building>,
+        private val conanRepository: ConanRepository,
     ) : Server {
 
         override fun accounts(): List<Account> = accounts
@@ -75,13 +78,29 @@ class Service(private val repo: ConanRepository) {
         override fun players(): List<Player> = players
         override fun playersFromGuild(guild: Guild): List<Player> = players.filter { it.guild == guild }
 
-        override fun ownership(player: Player): Owner = ownerId2Owner.getValue(player.id)
+        override fun ownership(player: Player): Owner = ownerId2Owner.getValue(player.ownerId)
         override fun ownership(guild: Guild): Owner = ownerId2Owner.getValue(guild.id)
         override fun unknownOwnership(): Owner = unknownOwner
 
         override fun ownedPlaceables(ownership: Owner): List<Placeable> = placeables.filter { it.owner == ownership }
 
         override fun ownedBuildings(ownership: Owner): List<Building> = buildings.filter { it.owner == ownership }
+        override fun transferOwnership(ids: List<Long>, ownership: Owner) {
+            val ownerId = when (ownership) {
+                is OwnerGuild -> ownership.guild.id
+                is OwnerPlayer -> ownership.player.id
+                else -> throw IllegalStateException("Owner must be a guild or a player but is $ownership")
+            }
+            conanRepository.updateOwnership(ids, ownerId)
+        }
+
+        override fun deletePlayer(player: Player) {
+            conanRepository.deletePlayer(player.id, player.ownerId)
+        }
+
+        override fun compress() {
+            conanRepository.compress()
+        }
 
         override fun toString(): String {
             return "ServerImpl(accounts=$accounts, guilds=$guilds, players=$players)"

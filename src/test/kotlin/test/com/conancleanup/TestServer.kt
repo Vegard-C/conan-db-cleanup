@@ -51,6 +51,7 @@ class TestServer {
                 players = nameAndID.mapIndexed { index, (name, _) ->
                     PlayerEO(
                         index.toLong(),
+                        0L,
                         name,
                         0L
                     )
@@ -77,5 +78,12 @@ class TestServer {
         override fun readPlayers(): Collection<PlayerEO> = players
         override fun readBuildingsAndPlaceables(): Collection<BuildingOrPlaceableEO> = listOf()
         override fun readBuildingInstances(): Collection<BuildingInstancesEO> = listOf()
+        override fun updateOwnership(buildingIds: List<Long>, owner: Long) {
+            TODO("Not yet implemented")
+        }
+
+        override fun deletePlayer(playerId: Long, ownerId: Long) {
+            TODO("Not yet implemented")
+        }
     }
 }
