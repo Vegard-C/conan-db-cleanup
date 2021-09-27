@@ -134,6 +134,85 @@ class RepositoryImpl(private val conBuilder: DbConnectionBuilder) : ConanReposit
         }
     }
 
+    override fun deleteGuild(guildId: Long) {
+        conBuilder.connection().use { c ->
+            c.autoCommit = false
+            val ownedBuildingIds = mutableListOf<Long>()
+            c.readTable("select object_id from buildings where owner_id=$guildId") {
+                ownedBuildingIds.add(it.getLong(1))
+            }
+            val buildingIdSet = ownedBuildingIds.joinToString()
+            if (ownedBuildingIds.isNotEmpty()) {
+                c.createStatement().use { s ->
+                    val rc = s.executeUpdate("delete from building_instances where object_id in ($buildingIdSet)")
+                    println("Deleted building_instances $rc")
+                }
+                c.createStatement().use { s ->
+                    val rc = s.executeUpdate("delete from properties where object_id in ($buildingIdSet)")
+                    println("Deleted properties for buildings $rc")
+                }
+                c.createStatement().use { s ->
+                    val rc = s.executeUpdate("delete from actor_position where id in ($buildingIdSet)")
+                    println("Deleted actor_position for buildings $rc")
+                }
+            }
+            c.createStatement().use { s ->
+                val rc = s.executeUpdate("delete from properties where object_id=$guildId")
+                println("Deleted properties for guild $rc")
+            }
+            c.createStatement().use { s ->
+                val rc = s.executeUpdate("delete from buildings where owner_id=$guildId")
+                println("Deleted buildings $rc")
+            }
+            c.createStatement().use { s ->
+                val rc = s.executeUpdate("delete from item_properties where owner_id=$guildId")
+                println("Deleted item_properties of guild $rc")
+            }
+            c.createStatement().use { s ->
+                val rc = s.executeUpdate("delete from item_inventory where owner_id=$guildId")
+                println("Deleted item_inventory of guild $rc")
+            }
+            c.createStatement().use { s ->
+                val rc = s.executeUpdate("delete from actor_position where id=$guildId")
+                println("Deleted actor_position of guild $rc")
+            }
+            c.createStatement().use { s ->
+                val rc = s.executeUpdate("delete from guilds where guildid=$guildId")
+                println("Deleted guilds $rc")
+            }
+            if (ownedBuildingIds.isNotEmpty()) {
+                c.createStatement().use { s ->
+                    val rc = s.executeUpdate("delete from item_properties where owner_id in ($buildingIdSet)")
+                    println("Deleted item_properties of chests $rc")
+                }
+                c.createStatement().use { s ->
+                    val rc = s.executeUpdate("delete from item_inventory where owner_id in ($buildingIdSet)")
+                    println("Deleted item_inventory of chests $rc")
+                }
+            }
+            c.commit()
+        }
+    }
+
+    override fun checkAllOwned(allOwners: Set<Long>) {
+        var count = 0
+        conBuilder.connection().use { c ->
+            c.readTable("select item_id, owner_id, inv_type from item_inventory") { rs ->
+                if (!allOwners.contains(rs.getLong(2))) {
+                    count++
+                    //println("item_inventory without known owner: item_id=${rs.getLong(1)}, owner_id=${rs.getLong(2)}, inv_type=${rs.getLong(3)}")
+                }
+            }
+            c.readTable("select item_id, owner_id, inv_type from item_properties") { rs ->
+                if (!allOwners.contains(rs.getLong(2))) {
+                    count++
+                    //println("item_property without known owner: item_id=${rs.getLong(1)}, owner_id=${rs.getLong(2)}, inv_type=${rs.getLong(3)}")
+                }
+            }
+        }
+        println("Items/properties of thralls=$count")
+    }
+
     override fun compress() {
         conBuilder.connection().use { c ->
             c.createStatement().use { s ->

@@ -85,5 +85,13 @@ class TestServer {
         override fun deletePlayer(playerId: Long, ownerId: Long) {
             TODO("Not yet implemented")
         }
+
+        override fun compress() {
+            TODO("Not yet implemented")
+        }
+
+        override fun deleteGuild(guildId: Long) {
+            TODO("Not yet implemented")
+        }
     }
 }

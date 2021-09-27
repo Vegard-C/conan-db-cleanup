@@ -15,6 +15,8 @@ interface Server {
     fun transferOwnership(ids: List<Long>, ownership: Owner)
     fun deletePlayer(player: Player)
     fun compress()
+    fun deleteGuild(guild: Guild)
+    fun checkAllOwned(allOwners: Set<Long>)
 }
 data class Account(
     val id: Long,

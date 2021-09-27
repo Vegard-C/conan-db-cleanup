@@ -9,4 +9,6 @@ interface ConanRepository {
     fun updateOwnership(buildingIds: List<Long>, owner: Long)
     fun deletePlayer(playerId: Long, ownerId: Long)
     fun compress()
+    fun deleteGuild(guildId: Long)
+    fun checkAllOwned(allOwners: Set<Long>)
 }

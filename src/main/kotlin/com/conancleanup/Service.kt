@@ -102,6 +102,14 @@ class Service(private val repo: ConanRepository) {
             conanRepository.compress()
         }
 
+        override fun deleteGuild(guild: Guild) {
+            conanRepository.deleteGuild(guild.id)
+        }
+
+        override fun checkAllOwned(allOwners: Set<Long>) {
+            conanRepository.checkAllOwned(allOwners)
+        }
+
         override fun toString(): String {
             return "ServerImpl(accounts=$accounts, guilds=$guilds, players=$players)"
         }

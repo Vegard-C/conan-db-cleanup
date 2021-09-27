@@ -17,11 +17,13 @@ class AppConfig {
 }
 
 @Component
-class TestRun (private val service: Service) {
+class TestRun(private val service: Service) {
     @Value("\${conancleanup.holdplayerids}")
     private lateinit var holdPlayerIdsString: String
-    @Value("\${conancleanup.unownedfixguildid}")
-    private lateinit var unownedFixGuildIdString: String
+
+    @Value("\${conancleanup.unownedPlaceables}")
+    private lateinit var unownedPlaceablesString: String
+
     @Value("\${conancleanup.maxdaysoffline}")
     private lateinit var maxDaysOfflineString: String
 
@@ -50,25 +52,39 @@ class TestRun (private val service: Service) {
         val placeables = server.ownedPlaceables(server.unknownOwnership()).size
         val unownedIds = server.ownedBuildings(server.unknownOwnership()).map { it.id } +
                 server.ownedPlaceables(server.unknownOwnership()).map { it.id }
-        println("Not owned: $buildings buildings, $placeables placeables")
-        println("Not owned building IDs: $unownedIds")
-
-        if (unownedIds.isNotEmpty()) {
-            val fixGuildId = unownedFixGuildIdString.toLong()
-            val fixGuild = server.guilds().first { it.id == fixGuildId }
-            println("Fixing unowned placeables. Give it to Guild ${fixGuild.name}")
-            server.transferOwnership(unownedIds, server.ownership(fixGuild))
+        val unownedPlaceableIds = unownedPlaceablesString.split(",").map { it.trim().toLong() }.toSet()
+        if (unownedIds.filter { !unownedPlaceableIds.contains(it) }.isNotEmpty()) {
+            println("Not owned: $buildings buildings, $placeables placeables")
+            println("Not owned building IDs: $unownedIds")
+        }
+        val holdPlayersIds = holdPlayerIdsString.split(",").map { it.trim().toLong() }.toSet()
+        val maxOffline = maxDaysOfflineString.toLong()
+        val firstPlayerToDelete =
+            server.players().find { !holdPlayersIds.contains(it.id) && it.daysOffline > maxOffline }
+        if (firstPlayerToDelete != null) {
+            println("Player ${firstPlayerToDelete.name} is ${firstPlayerToDelete.daysOffline} offline and will be deleted")
+            server.deletePlayer(firstPlayerToDelete)
             return true
         } else {
-            val holdPlayersIds = holdPlayerIdsString.split(",").map { it.trim().toLong() }.toSet()
-            val maxOffline = maxDaysOfflineString.toLong()
-            val firstPlayerToDelete = server.players().find { !holdPlayersIds.contains(it.id) && it.daysOffline > maxOffline }
-            if (firstPlayerToDelete != null) {
-                println("Player ${firstPlayerToDelete.name} is ${firstPlayerToDelete.daysOffline} offline and will be deleted")
-                server.deletePlayer(firstPlayerToDelete)
+            val emptyGuild = server.guilds().find { server.playersFromGuild(it).isEmpty() }
+            if (emptyGuild != null) {
+                println("Guild ${emptyGuild.name} has no player and will be removed")
+                server.deleteGuild(emptyGuild)
                 return true
             } else {
                 println("Nothing more to do. Compressing DB")
+                val allOwners = mutableSetOf<Long>()
+                server.guilds().forEach {
+                    allOwners.add(it.id)
+                    server.ownedBuildings(server.ownership(it)).forEach { allOwners.add(it.id) }
+                    server.ownedPlaceables(server.ownership(it)).forEach { allOwners.add(it.id) }
+                }
+                server.players().forEach {
+                    allOwners.add(it.ownerId)
+                    server.ownedBuildings(server.ownership(it)).forEach { allOwners.add(it.id) }
+                    server.ownedPlaceables(server.ownership(it)).forEach { allOwners.add(it.id) }
+                }
+                server.checkAllOwned(allOwners)
                 server.compress()
                 return false
             }
