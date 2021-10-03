@@ -70,7 +70,7 @@ class RepositoryImpl(private val conBuilder: DbConnectionBuilder) : ConanReposit
         }
     }
 
-    override fun deletePlayer(playerId: Long, ownerId: Long) {
+    override fun deletePlayer(playerId: Long, ownerId: Long, removeFromGuild: Boolean) {
         conBuilder.connection().use { c ->
             c.autoCommit = false
             val ownedBuildingIds = mutableListOf<Long>()
@@ -116,9 +116,11 @@ class RepositoryImpl(private val conBuilder: DbConnectionBuilder) : ConanReposit
                 val rc = s.executeUpdate("delete from character_stats where char_id=$ownerId")
                 println("Deleted character_stats of char $rc")
             }
-            c.createStatement().use { s ->
-                val rc = s.executeUpdate("delete from characters where playerid=$playerId")
-                println("Deleted characters $rc")
+            if (removeFromGuild) {
+                c.createStatement().use { s ->
+                    val rc = s.executeUpdate("update characters set guild=null where id=$ownerId")
+                    println("Update characters to remove guild $rc")
+                }
             }
             if (ownedBuildingIds.isNotEmpty()) {
                 c.createStatement().use { s ->

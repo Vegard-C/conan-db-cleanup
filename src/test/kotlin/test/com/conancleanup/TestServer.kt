@@ -1,6 +1,5 @@
 package test.com.conancleanup
 
-import com.conancleanup.Account
 import com.conancleanup.Service
 import com.conancleanup.repo.*
 import org.assertj.core.api.Assertions.*
@@ -82,7 +81,7 @@ class TestServer {
             TODO("Not yet implemented")
         }
 
-        override fun deletePlayer(playerId: Long, ownerId: Long) {
+        override fun deletePlayer(playerId: Long, ownerId: Long, removeFromGuild: Boolean) {
             TODO("Not yet implemented")
         }
 
@@ -91,6 +90,10 @@ class TestServer {
         }
 
         override fun deleteGuild(guildId: Long) {
+            TODO("Not yet implemented")
+        }
+
+        override fun checkAllOwned(allOwners: Set<Long>) {
             TODO("Not yet implemented")
         }
     }

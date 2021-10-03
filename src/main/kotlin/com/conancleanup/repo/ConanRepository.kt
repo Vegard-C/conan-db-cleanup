@@ -7,7 +7,7 @@ interface ConanRepository {
     fun readBuildingsAndPlaceables(): Collection<BuildingOrPlaceableEO>
     fun readBuildingInstances(): Collection<BuildingInstancesEO>
     fun updateOwnership(buildingIds: List<Long>, owner: Long)
-    fun deletePlayer(playerId: Long, ownerId: Long)
+    fun deletePlayer(playerId: Long, ownerId: Long, removeFromGuild: Boolean)
     fun compress()
     fun deleteGuild(guildId: Long)
     fun checkAllOwned(allOwners: Set<Long>)

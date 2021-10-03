@@ -13,7 +13,7 @@ interface Server {
     fun ownedPlaceables(ownership: Owner): List<Placeable>
     fun ownedBuildings(ownership: Owner): List<Building>
     fun transferOwnership(ids: List<Long>, ownership: Owner)
-    fun deletePlayer(player: Player)
+    fun deletePlayer(player: Player, removeFromGuild: Boolean)
     fun compress()
     fun deleteGuild(guild: Guild)
     fun checkAllOwned(allOwners: Set<Long>)

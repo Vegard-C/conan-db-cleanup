@@ -29,12 +29,11 @@ class TestRun(private val service: Service) {
 
     @EventListener(ApplicationReadyEvent::class)
     fun doSomethingAfterStartup() {
-        do {
-            val fixDone = processDb()
-        } while (fixDone)
+        deletePlayers()
+        checkAndCompress()
     }
 
-    private fun processDb(): Boolean {
+    private fun deletePlayers() {
         val server = service.readServer()
         server.guilds().forEach { guild ->
             val players = server.playersFromGuild(guild).map { it.name }
@@ -59,36 +58,47 @@ class TestRun(private val service: Service) {
         }
         val holdPlayersIds = holdPlayerIdsString.split(",").map { it.trim().toLong() }.toSet()
         val maxOffline = maxDaysOfflineString.toLong()
-        val firstPlayerToDelete =
-            server.players().find { !holdPlayersIds.contains(it.id) && it.daysOffline > maxOffline }
-        if (firstPlayerToDelete != null) {
-            println("Player ${firstPlayerToDelete.name} is ${firstPlayerToDelete.daysOffline} offline and will be deleted")
-            server.deletePlayer(firstPlayerToDelete)
-            return true
-        } else {
-            val emptyGuild = server.guilds().find { server.playersFromGuild(it).isEmpty() }
-            if (emptyGuild != null) {
-                println("Guild ${emptyGuild.name} has no player and will be removed")
-                server.deleteGuild(emptyGuild)
-                return true
-            } else {
-                println("Nothing more to do. Compressing DB")
-                val allOwners = mutableSetOf<Long>()
-                server.guilds().forEach {
-                    allOwners.add(it.id)
-                    server.ownedBuildings(server.ownership(it)).forEach { allOwners.add(it.id) }
-                    server.ownedPlaceables(server.ownership(it)).forEach { allOwners.add(it.id) }
-                }
-                server.players().forEach {
-                    allOwners.add(it.ownerId)
-                    server.ownedBuildings(server.ownership(it)).forEach { allOwners.add(it.id) }
-                    server.ownedPlaceables(server.ownership(it)).forEach { allOwners.add(it.id) }
-                }
-                server.checkAllOwned(allOwners)
-                server.compress()
-                return false
+
+        val playersToBeDeleted = server.players().filter { !holdPlayersIds.contains(it.id) && it.daysOffline > maxOffline }
+        val guildsToBeDeleted = server.guilds().filter { guild ->
+            server.playersFromGuild(guild).filter { !playersToBeDeleted.contains(it) }.isEmpty()
+        }
+
+        if (playersToBeDeleted.isNotEmpty() || guildsToBeDeleted.isNotEmpty()) {
+            playersToBeDeleted.forEach { player ->
+                println("Removing player ${player.name}")
+                val removeFromGuild =
+                    player.guild != null && guildsToBeDeleted.find { it.id == player.guild.id } != null
+                server.deletePlayer(player, removeFromGuild)
+            }
+            guildsToBeDeleted.forEach(server::deleteGuild)
+            val deletedPlayers = playersToBeDeleted.map { it.name }
+            val deletedGuilds = guildsToBeDeleted.map { it.name }
+            if (deletedPlayers.isNotEmpty()) {
+                println("Players cleaned: $deletedPlayers")
+                println("You MUST delete those players in Pippi later to remove them from Pippis list")
+            }
+            if (deletedGuilds.isNotEmpty()) {
+                println("Deleted guilds: $deletedGuilds")
             }
         }
+    }
+
+    private fun checkAndCompress() {
+        val server = service.readServer()
+        val allOwners = mutableSetOf<Long>()
+        server.guilds().forEach {
+            allOwners.add(it.id)
+            server.ownedBuildings(server.ownership(it)).forEach { allOwners.add(it.id) }
+            server.ownedPlaceables(server.ownership(it)).forEach { allOwners.add(it.id) }
+        }
+        server.players().forEach {
+            allOwners.add(it.ownerId)
+            server.ownedBuildings(server.ownership(it)).forEach { allOwners.add(it.id) }
+            server.ownedPlaceables(server.ownership(it)).forEach { allOwners.add(it.id) }
+        }
+        server.checkAllOwned(allOwners)
+        server.compress()
     }
 }
 

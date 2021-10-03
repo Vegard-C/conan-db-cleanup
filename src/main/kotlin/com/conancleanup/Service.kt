@@ -94,8 +94,8 @@ class Service(private val repo: ConanRepository) {
             conanRepository.updateOwnership(ids, ownerId)
         }
 
-        override fun deletePlayer(player: Player) {
-            conanRepository.deletePlayer(player.id, player.ownerId)
+        override fun deletePlayer(player: Player, removeFromGuild: Boolean) {
+            conanRepository.deletePlayer(player.id, player.ownerId, removeFromGuild)
         }
 
         override fun compress() {
